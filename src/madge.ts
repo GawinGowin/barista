@@ -8,7 +8,8 @@ export type EntryModel = {
 }
 
 const createEntryModel = (pathIn: string, pathOut: string[]): EntryModel => {
-    const key = path.basename(path.dirname(pathIn));
+    const relativePath = path.relative(process.cwd(), path.resolve(pathIn));
+    const key = relativePath.split(path.sep).filter(str => str !== "..").join('.');
     const name = path.basename(pathIn).replace(path.extname(pathIn), '');
     const fullname = `${key}.${name}.dds`;
     const fileOut = path.join(...pathOut, fullname);
