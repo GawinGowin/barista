@@ -18,7 +18,7 @@ const main = async () => {
         const entries = await fs.scan(config.scan.source, config.scan.regex);
         const entryModels = entries.map((entry: string) => {
             console.log(entry);
-            return ms.createEntryModel(entry, config.scan.dest);
+            return ms.createEntryModel(entry, config.scan.source, config.scan.dest);
         });
 
         console.log('Step 3: Madge process...');

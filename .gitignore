@@ -1,5 +1,6 @@
 barista.config.json
 neo4j
+.vscode
 
 # Logs
 logs

@@ -28,7 +28,7 @@ describe('test madge function', () => {
 describe('test createEntryModel function', () => {
     it('should return expected first filename', () => {
         const pathIn = path.join('src', 'first.entry.ts');
-        const result = ms.createEntryModel(pathIn, ['dest']);
+        const result = ms.createEntryModel(pathIn, ['.'], ['dest']);
 
         expect(result.fileIn).toBe(pathIn);
         const fileOut = path.join('dest', 'src.first.entry.dds');
@@ -37,7 +37,7 @@ describe('test createEntryModel function', () => {
     });
     it('should return expected second filename', () => {
         const pathIn = path.join('src', 'page', 'second.entry.dds');
-        const result = ms.createEntryModel(pathIn, ['dest']);
+        const result = ms.createEntryModel(pathIn, ['.'], ['dest']);
         expect(result.fileIn).toBe(pathIn);
         const fileOut = path.join('dest', 'page.second.entry.dds');
         expect(result.fileOut).toBe(fileOut);

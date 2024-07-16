@@ -14,14 +14,20 @@ const scan = (dir: string[], regex: string): Promise<string[]> => new Promise((r
 });
 
 const mergeFromFile = (result: Record<string, string[]>, obj: EntryModel): void => {
+    const lines = fs.readFileSync(obj.fileOut, 'utf-8').split(/\r?\n/)
     let root = '';
     let isPush = false;
-    fs.readFileSync(obj.fileOut, 'utf-8').split(/\r?\n/).forEach((line) => {
-        if (line.trim() === '' || line.indexOf('Processed') > -1) return;
-        const x = line.indexOf('  ') > -1 ? line.replace('  ', ',') : line;
-        const isRoot = x.indexOf(',') === -1;
-        const isInternal = x.indexOf('..') === -1;
-        const sub = isRoot ? `${obj.key}/${x}` : `,${obj.key}/${x.replace(',', '')}`;
+    for (const line of lines) {
+        if (line.trim() === '' || line.indexOf('Processed') > -1) continue;
+        const x = line.indexOf('  ') > -1 ? line.replace('  ', '\t') : line; // 中間依存関係のあるファイルなら、タブを追加してマーク
+        const isRoot = x.indexOf('\t') === -1; // 中間依存ではない場合 isRoot = true
+        const isInternal = x.indexOf('..') === -1; // ../ の位置にあるファイルならば、isInternal = true
+        // const sub = isRoot ? `${obj.key}/${x}` : `\t${obj.key}/${x.replace('\t', '')}`;
+        const sub = isRoot
+            ? path.normalize(`${obj.key}/${x}`)
+            : `\t${path.normalize(`${obj.key}/${x.replace('\t', '')}`)}`;
+        
+
         const y = isInternal ? sub : x;
         const z = obj.key === 'src' ? x : y;
         const row = isInternal ? z : z.replace(/(\.\.\/)/g, '');
@@ -37,7 +43,7 @@ const mergeFromFile = (result: Record<string, string[]>, obj: EntryModel): void 
         } else if (isPush) {
             result[root].push(row);
         }
-    });
+    }
 };
 
 const transform = (objs: EntryModel[]): Record<string, string[]> => {
