@@ -38,7 +38,7 @@ const main = async () => {
 
         console.log('Step 6: Create a Graph...');
         const cmds = cmdBuilder.build(gds);
-        await neo4jProvider.batch(cmds);
+        await neo4jProvider.batch(cmds, config.scan.source);
         console.log(`Graph created using ${cmds.length} triples.`);
 
         console.log('Enjoy your Client-side Dependency Graph.');

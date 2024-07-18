@@ -1,13 +1,24 @@
-import { FileDepOnFile, FolderInFolder, FileFromFolder } from './triples.d';
+import { FileDepOnFile, FolderInFolder, FileFromFolder, EachCmd } from './triples.d';
 
 // (thisFile:File)-[:DEPENDS_ON]->(thatFile:File)
-const cmdDependsOn = (x: FileDepOnFile): string => `MERGE (a:File { name: "${x.thisFile.replace(/\\/g, '/')}" }) ON CREATE SET a.name = "${x.thisFile.replace(/\\/g, '/')}" MERGE (b:File { name: "${x.thatFile.replace(/\\/g, '/')}" }) ON CREATE SET b.name = "${x.thatFile.replace(/\\/g, '/')}" MERGE (a)-[:DEPENDS_ON]->(b);`;
+const cmdDependsOn = (x: FileDepOnFile): string => 
+    `MERGE (a:File { name: "${x.thisFile.replace(/\\/g, '/')}" })
+    ON CREATE SET a.contents = $contents
+    MERGE (b:File { name: "${x.thatFile.replace(/\\/g, '/')}" })
+    MERGE (a)-[:DEPENDS_ON]->(b);`;
 
 // (thisFodler:Folder)-[:IN]->(thatFolder:Folder)
-const cmdIn = (x: FolderInFolder): string => `MERGE (a:Folder { name: "${x.thisFolder.replace(/\\/g, '/')}" }) ON CREATE SET a.name = "${x.thisFolder.replace(/\\/g, '/')}" MERGE (b:Folder { name: "${x.thatFolder.replace(/\\/g, '/')}" }) ON CREATE SET b.name = "${x.thatFolder.replace(/\\/g, '/')}" MERGE (a)-[:IN]->(b);`;
+const cmdIn = (x: FolderInFolder): string => 
+    `MERGE (a:Folder { name: "${x.thisFolder.replace(/\\/g, '/')}" })
+    MERGE (b:Folder { name: "${x.thatFolder.replace(/\\/g, '/')}" })
+    MERGE (a)-[:IN]->(b);`;
 
 // (thisFile:File)-[:FROM]->(thatFolder:Folder)
-const cmdFrom = (x: FileFromFolder): string => `MERGE (a:File { name: "${x.thisFile.replace(/\\/g, '/')}" }) ON CREATE SET a.name = "${x.thisFile.replace(/\\/g, '/')}" MERGE (b:Folder { name: "${x.thatFolder.replace(/\\/g, '/')}" }) ON CREATE SET b.name = "${x.thatFolder.replace(/\\/g, '/')}" MERGE (a)-[:FROM]->(b);`;
+const cmdFrom = (x: FileFromFolder): string => 
+    `MERGE (a:File { name: "${x.thisFile.replace(/\\/g, '/')}" })
+    ON CREATE SET a.contents = $contents
+    MERGE (b:Folder { name: "${x.thatFolder.replace(/\\/g, '/')}" })
+    MERGE (a)-[:FROM]->(b);`;
 
 const mutate = (initFile: string, line: string): Record<string, string[]> => {
     const result = [];
@@ -34,16 +45,19 @@ const mutate = (initFile: string, line: string): Record<string, string[]> => {
     return { arr: result, next: [thisFile] };
 };
 
-const build = (obj: Record<string, string[]>): string[] => {
+const build = (obj: Record<string, string[]>): EachCmd[] => {
     let thisFile = '';
-    return Object.keys(obj).map((keyObj) => {
+    const result: EachCmd[] = [];
+    Object.keys(obj).map((keyObj) => {
         const items = obj[keyObj];
-        return items.map((x) => {
+        const itemsList = items.map((x) => {
             const result = mutate(thisFile, x);
             [thisFile] = result.next;
             return result.arr;
-        }).reduce((acc, a) => { a.forEach(x => acc.push(x)); return acc; }, []);
-    }).reduce((acc, a) => { a.forEach(x => acc.push(x)); return acc; }, []);
+        }).reduce((acc, a) => { for (const x of a) { acc.push(x); } return acc; }, []);
+        result.push({ cmdString: itemsList, contentsFile: keyObj }); 
+    })
+    return result
 };
 
 export default {

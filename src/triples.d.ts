@@ -17,3 +17,8 @@ export declare class FileFromFolder {
 
     thatFolder: string;
 }
+
+export declare class EachCmd {
+    cmdString: string[];
+    contentsFile: string;
+}

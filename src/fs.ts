@@ -46,4 +46,10 @@ const transform = (objs: EntryModel[]): Record<string, string[]> => {
     return { ...result };
 };
 
-export default { scan, transform };
+const readFileContents = (sourcePath: string[], fileKey: string): string => {
+    const file = path.join(...sourcePath, '../', fileKey);
+    const lines = fs.readFileSync(file, 'utf-8');
+    return lines;
+}
+
+export default { scan, transform, readFileContents };

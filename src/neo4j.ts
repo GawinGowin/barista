@@ -2,9 +2,11 @@ import {
     driver, auth, session, Driver
 } from 'neo4j-driver';
 import { GraphConfig } from './configProvider';
+import { EachCmd } from './triples.d';
+import fs from './fs';
 
 interface INeo4jProvider {
-    batch(cmds: string[]): Promise<void>;
+    batch(cmds: EachCmd[], sourcePath: string[]): Promise<void>;
     clearDb(): Promise<void>;
     close(): Promise<void>;
 }
@@ -22,7 +24,7 @@ class Neo4jProvider implements INeo4jProvider {
         );
     }
 
-    async batch(cmds: string[]): Promise<void> {
+    async batch(cmds: EachCmd[], sourcePath: string[]): Promise<void> {
         const dbSession = this.driver.session({
             database: this.config.database,
             defaultAccessMode: session.WRITE
@@ -30,13 +32,15 @@ class Neo4jProvider implements INeo4jProvider {
 
         const readTxResultPromise = dbSession.writeTransaction((txc) => {
             const results = [];
-            cmds.forEach((cmd) => {
-                results.push(txc.run(cmd));
-            });
-
+            for (const cmd of cmds) {
+                for (const cmdString of cmd.cmdString) {
+                    results.push(txc.run(
+                        cmdString, { contents: `${fs.readFileContents(sourcePath, cmd.contentsFile)}`}
+                    ));
+                }
+            }
             return results;
         });
-
         return readTxResultPromise
             .then()
             .catch((err) => {
