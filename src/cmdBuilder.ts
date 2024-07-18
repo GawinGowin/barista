@@ -1,13 +1,13 @@
 import { FileDepOnFile, FolderInFolder, FileFromFolder } from './triples.d';
 
 // (thisFile:File)-[:DEPENDS_ON]->(thatFile:File)
-const cmdDependsOn = (x: FileDepOnFile): string => `MERGE (a:File { name: "${x.thisFile}" }) ON CREATE SET a.name = "${x.thisFile}" MERGE (b:File { name: "${x.thatFile}" }) ON CREATE SET b.name = "${x.thatFile}" MERGE (a)-[:DEPENDS_ON]->(b);`;
+const cmdDependsOn = (x: FileDepOnFile): string => `MERGE (a:File { name: "${x.thisFile.replace(/\\/g, '/')}" }) ON CREATE SET a.name = "${x.thisFile.replace(/\\/g, '/')}" MERGE (b:File { name: "${x.thatFile.replace(/\\/g, '/')}" }) ON CREATE SET b.name = "${x.thatFile.replace(/\\/g, '/')}" MERGE (a)-[:DEPENDS_ON]->(b);`;
 
 // (thisFodler:Folder)-[:IN]->(thatFolder:Folder)
-const cmdIn = (x: FolderInFolder): string => `MERGE (a:Folder { name: "${x.thisFolder}" }) ON CREATE SET a.name = "${x.thisFolder}" MERGE (b:Folder { name: "${x.thatFolder}" }) ON CREATE SET b.name = "${x.thatFolder}" MERGE (a)-[:IN]->(b);`;
+const cmdIn = (x: FolderInFolder): string => `MERGE (a:Folder { name: "${x.thisFolder.replace(/\\/g, '/')}" }) ON CREATE SET a.name = "${x.thisFolder.replace(/\\/g, '/')}" MERGE (b:Folder { name: "${x.thatFolder.replace(/\\/g, '/')}" }) ON CREATE SET b.name = "${x.thatFolder.replace(/\\/g, '/')}" MERGE (a)-[:IN]->(b);`;
 
 // (thisFile:File)-[:FROM]->(thatFolder:Folder)
-const cmdFrom = (x: FileFromFolder): string => `MERGE (a:File { name: "${x.thisFile}" }) ON CREATE SET a.name = "${x.thisFile}" MERGE (b:Folder { name: "${x.thatFolder}" }) ON CREATE SET b.name = "${x.thatFolder}" MERGE (a)-[:FROM]->(b);`;
+const cmdFrom = (x: FileFromFolder): string => `MERGE (a:File { name: "${x.thisFile.replace(/\\/g, '/')}" }) ON CREATE SET a.name = "${x.thisFile.replace(/\\/g, '/')}" MERGE (b:Folder { name: "${x.thatFolder.replace(/\\/g, '/')}" }) ON CREATE SET b.name = "${x.thatFolder.replace(/\\/g, '/')}" MERGE (a)-[:FROM]->(b);`;
 
 const mutate = (initFile: string, line: string): Record<string, string[]> => {
     const result = [];
