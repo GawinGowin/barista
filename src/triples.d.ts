@@ -20,5 +20,6 @@ export declare class FileFromFolder {
 
 export declare class EachCmd {
     cmdString: string[];
-    contentsFile: string;
+    sourceFile: string;
+    targetFile: string[];
 }

@@ -37,9 +37,17 @@ const main = async () => {
         await neo4jProvider.clearDb();
 
         console.log('Step 6: Create a Graph...');
+        const batchSize = 100; // Set the desired batch size
         const cmds = cmdBuilder.build(gds);
-        await neo4jProvider.batch(cmds, config.scan.source);
-        console.log(`Graph created using ${cmds.length} triples.`);
+        const totalCmds = cmds.length;
+        let processedCmds = 0;
+        while (processedCmds < totalCmds) {
+            const batchCmds = cmds.slice(processedCmds, processedCmds + batchSize);
+            await neo4jProvider.batch(batchCmds, config.scan.source);
+            processedCmds += batchCmds.length;
+            console.log(`Processed ${processedCmds} out of ${totalCmds} commands.`);
+        }
+        console.log(`Graph created using ${totalCmds} triples.`);
 
         console.log('Enjoy your Client-side Dependency Graph.');
     } catch (err) {

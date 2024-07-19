@@ -29,13 +29,19 @@ class Neo4jProvider implements INeo4jProvider {
             database: this.config.database,
             defaultAccessMode: session.WRITE
         });
-
         const readTxResultPromise = dbSession.writeTransaction((txc) => {
             const results = [];
             for (const cmd of cmds) {
-                for (const cmdString of cmd.cmdString) {
+                const targets: { [key: string]: string } = {};
+                for (let index = 0; index < cmd.targetFile.length; index++) {
+                    targets[`targetFile_${index}`] = `${fs.readFileContents(sourcePath, (cmd.targetFile[index]).replace(',', ''))}`;
+                }
+                for (const cmdstring of cmd.cmdString) {
                     results.push(txc.run(
-                        cmdString, { contents: `${fs.readFileContents(sourcePath, cmd.contentsFile)}`}
+                        cmdstring, {
+                            sourceFile: `${fs.readFileContents(sourcePath, cmd.sourceFile)}`,
+                            ...targets
+                        }
                     ));
                 }
             }
