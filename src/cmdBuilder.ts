@@ -1,25 +1,37 @@
 import { FileDepOnFile, FolderInFolder, FileFromFolder, EachCmd } from './triples.d';
 
 // (thisFile:File)-[:DEPENDS_ON]->(thatFile:File)
-const cmdDependsOn = (x: FileDepOnFile, index: number): string => 
-    `MERGE (a:File { name: "${x.thisFile.replace(/\\/g, '/')}" })
-    ON CREATE SET a.contents = $sourceFile
-    MERGE (b:File { name: "${x.thatFile.replace(/\\/g, '/')}" })
-    ON CREATE SET b.contents = $targetFile_${index}
-    MERGE (a)-[:DEPENDS_ON]->(b);`;
+const cmdDependsOn = (x: FileDepOnFile, index: number): string => {
+    const thisName = x.thisFile.replace(/\\/g, '/');
+    const thatName = x.thatFile.replace(/\\/g, '/');
+    return (
+        `MERGE (a:File { name: "${thisName}", id: "${thisName}" })
+        ON CREATE SET a.contents = $sourceFile
+        MERGE (b:File { name: "${thatName}", id: "${thatName}" })
+        ON CREATE SET b.contents = $targetFile_${index}
+        MERGE (a)-[:DEPENDS_ON]->(b);`
+    );
+}
 
 // (thisFodler:Folder)-[:IN]->(thatFolder:Folder)
-const cmdIn = (x: FolderInFolder): string => 
-    `MERGE (a:Folder { name: "${x.thisFolder.replace(/\\/g, '/')}" })
-    MERGE (b:Folder { name: "${x.thatFolder.replace(/\\/g, '/')}" })
-    MERGE (a)-[:IN]->(b);`;
-
+const cmdIn = (x: FolderInFolder): string => {
+    const thisName = x.thisFolder.replace(/\\/g, '/');
+    const thatName = x.thatFolder.replace(/\\/g, '/');
+    return (
+        `MERGE (a:Folder { name: "${thisName}", id: "${thisName}" })
+        MERGE (b:Folder { name: "${thatName}", id: "${thatName}" })
+        MERGE (a)-[:IN]->(b);`
+    );
+}
 // (thisFile:File)-[:FROM]->(thatFolder:Folder)
-const cmdFrom = (x: FileFromFolder): string => 
-    `MERGE (a:File { name: "${x.thisFile.replace(/\\/g, '/')}" })
+const cmdFrom = (x: FileFromFolder): string => {
+    const thisName = x.thisFile.replace(/\\/g, '/')
+    const thatName = x.thatFolder.replace(/\\/g, '/')
+    return (`MERGE (a:File { name: "${thisName}", id: "${thisName}"})
     ON CREATE SET a.contents = $sourceFile
-    MERGE (b:Folder { name: "${x.thatFolder.replace(/\\/g, '/')}" })
-    MERGE (a)-[:FROM]->(b);`;
+    MERGE (b:Folder { name: "${thatName}", id: "${thatName}"})
+    MERGE (a)-[:FROM]->(b);`);
+}
 
 const mutate = (initFile: string, line: string, index: number): Record<string, string[]> => {
     const result = [];
