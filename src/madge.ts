@@ -1,5 +1,7 @@
 import path from 'path';
-import { exec, ExecException } from 'child_process';
+// import { exec, ExecException } from 'child_process';
+import type { ScanConfig } from './configProvider';
+import Madge from 'madge';
 
 export type EntryModel = {
     key: string;
@@ -21,20 +23,21 @@ const createEntryModel = (pathIn: string, sourcePathIn: string[], pathOut: strin
     } as EntryModel;
 };
 
-const madge = (obj: EntryModel): Promise<void> =>
+const madge = (obj: EntryModel, cfg?: ScanConfig): Promise<void> =>
     new Promise<void>(
         (resolve, reject) => {
-            exec(
-                `madge ${obj.fileIn} > ${obj.fileOut}`,
-                { encoding: 'utf-8' },
-                (error: ExecException) => {
-                    if (error) {
-                        reject(error);
-                    }
-                    console.log(`Madge completed with output file: ${obj.fileOut}`);
-                    resolve();
+            Madge(
+                obj.fileIn,
+                {
+                    baseDir: path.join(...cfg.source),
+                    fileExtensions: cfg.regex,
+                    tsConfig: cfg.tsConfig
                 }
-            );
+            ).then((res) => {
+                console.log(`Madge completed with output file: ${obj.fileOut}`);
+                console.log(res.obj());
+                resolve();
+            }).catch((error: Error) => {reject(error)});
         }
     );
 

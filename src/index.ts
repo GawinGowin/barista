@@ -23,7 +23,7 @@ const main = async () => {
 
         console.log('Step 3: Madge process...');
         const madgePromises = entryModels.map(entryObj =>
-            ms.madge(entryObj));
+            ms.madge(entryObj, config.scan));
         await Promise.all(madgePromises);
         console.log('Madge-based DependencyDataSource files (.dds) are created.');
 
@@ -37,7 +37,7 @@ const main = async () => {
         await neo4jProvider.clearDb();
 
         console.log('Step 6: Create a Graph...');
-        const batchSize = 100; // Set the desired batch size
+        const batchSize = 25; // Set the desired batch size
         const cmds = cmdBuilder.build(gds);
         const totalCmds = cmds.length;
         let processedCmds = 0;

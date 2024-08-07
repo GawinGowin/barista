@@ -11,7 +11,8 @@ const mockBaristaConfig: BaristaConfig = {
     scan: {
         regex: '*',
         source: ['path'],
-        dest: ['destFolder']
+        dest: ['destFolder'],
+        tsConfig: 'tsconfig.json'
     }
 };
 

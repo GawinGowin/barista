@@ -8,9 +8,10 @@ export interface GraphConfig {
 }
 
 export interface ScanConfig {
-    regex: string;
+    regex: string | string[];
     source: string[];
     dest: string[];
+    tsConfig: string;
 }
 
 export interface BaristaConfig {

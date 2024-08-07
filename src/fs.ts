@@ -1,10 +1,20 @@
 import { glob } from 'glob';
 import path from 'path';
 import fs from 'fs';
-import { EntryModel } from './madge';
+import type { EntryModel } from './madge';
 
-const scan = (dir: string[], regex: string): Promise<string[]> => new Promise((resolve, reject) => {
-    const pattern = path.join(...[...dir, regex]);
+const scan = (dir: string[], regex: string[] | string): Promise<string[]> => new Promise((resolve, reject) => {
+    let pattern: string;
+    if (typeof regex === 'string') {
+        pattern = path.join(...[...dir, regex[0]]);
+    }
+    else {
+        const createPatterns = (dirPath: string, regexes: string[]): string => {
+            const patterns = regexes.map((regex) => path.join(...[dirPath, regex]));
+            return `{${patterns.join(',')}}`;
+        }
+        pattern = createPatterns(path.join(...dir), regex);
+    }
     glob(pattern, {}, (err, files) => {
         if (err) {
             reject(err);
@@ -40,9 +50,9 @@ const mergeFromFile = (result: Record<string, string[]>, obj: EntryModel): void 
 
 const transform = (objs: EntryModel[]): Record<string, string[]> => {
     const result = {} as Record<string, string[]>;
-    objs.forEach((obj) => {
+    for (const obj of objs) {
         mergeFromFile(result, obj);
-    });
+    }
     return { ...result };
 };
 

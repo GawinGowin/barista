@@ -20,16 +20,16 @@ class Neo4jProvider implements INeo4jProvider {
         this.config = gcfg;
         this.driver = driver(
             gcfg.host,
-            auth.basic(gcfg.login, gcfg.password)
+            auth.basic(gcfg.login, gcfg.password),
+            { maxTransactionRetryTime: 500000 }
         );
     }
 
     async batch(cmds: EachCmd[], sourcePath: string[]): Promise<void> {
         const dbSession = this.driver.session({
-            database: this.config.database,
-            defaultAccessMode: session.WRITE
+            database: this.config.database
         });
-        const readTxResultPromise = dbSession.writeTransaction((txc) => {
+        const readTxResultPromise = dbSession.executeWrite((txc) => {
             const results = [];
             for (const cmd of cmds) {
                 const targets: { [key: string]: string } = {};
@@ -46,7 +46,7 @@ class Neo4jProvider implements INeo4jProvider {
                 }
             }
             return results;
-        });
+        }, {timeout: 300000});
         return readTxResultPromise
             .then()
             .catch((err) => {
